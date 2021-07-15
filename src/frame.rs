@@ -32,12 +32,9 @@ pub struct Frame {
 }
 
 impl Frame {
-    /// Get the length of the frame.
-    /// This is the length of the header + the length of the payload.
     #[inline]
-    pub fn len(&self) -> usize {
+    pub fn len_for_payload(payload_len: usize, is_masked: bool) -> usize {
         let mut header_length = 2;
-        let payload_len = self.payload().len();
         if payload_len > 125 {
             if payload_len <= u16::max_value() as usize {
                 header_length += 2;
@@ -46,11 +43,19 @@ impl Frame {
             }
         }
 
-        if self.is_masked() {
+        if is_masked {
             header_length += 4;
         }
 
         header_length + payload_len
+    }
+
+    /// Get the length of the frame.
+    /// This is the length of the header + the length of the payload.
+    #[inline]
+    pub fn len(&self) -> usize {
+        let payload_len = self.payload().len();
+        Self::len_for_payload(payload_len, self.is_masked())
     }
 
     /// Return `false`: a frame is never empty since it has a header.

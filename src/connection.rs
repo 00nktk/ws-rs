@@ -1024,6 +1024,25 @@ where
         }
     }
 
+    pub fn check_message_fits(&self, msg: &Message) -> bool {
+        let will_split = msg.len() > self.settings.fragment_size;
+        let cumulative_payload_len = if will_split {
+            let fragment_len = self.settings.fragment_size;
+            let n_chunks = msg.len() / fragment_len;
+            let chunks_len = Frame::len_for_payload(fragment_len, self.is_client()) * n_chunks;
+            let trailing_chunk_len = match msg.len() % fragment_len {
+                0 => 0,
+                n => Frame::len_for_payload(n, self.is_client()),
+            };
+
+            chunks_len + trailing_chunk_len
+        } else {
+            Frame::len_for_payload(msg.len(), self.is_client())
+        };
+
+        self.out_buffer.remaining_mut() >= cumulative_payload_len
+    }
+
     pub fn send_message(&mut self, msg: Message) -> Result<()> {
         if self.state.is_closing() {
             trace!(
