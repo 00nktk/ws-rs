@@ -11,8 +11,9 @@ use message;
 use protocol::CloseCode;
 use result::{Error, Result};
 use std::cmp::PartialEq;
-use std::hash::{Hash, Hasher};
 use std::fmt;
+use std::hash::{Hash, Hasher};
+use std::sync::mpsc::TryRecvError;
 
 #[derive(Debug, Clone)]
 pub enum Signal {
@@ -70,7 +71,7 @@ impl PartialEq for Sender {
     }
 }
 
-impl Eq for Sender { }
+impl Eq for Sender {}
 
 impl Hash for Sender {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -78,7 +79,6 @@ impl Hash for Sender {
         self.token.hash(state);
     }
 }
-
 
 impl Sender {
     #[doc(hidden)]
@@ -245,5 +245,33 @@ impl Sender {
                 connection_id: self.connection_id,
             })
             .map_err(Error::from)
+    }
+}
+
+pub struct PeekableReceiver<T> {
+    receiver: mio::channel::Receiver<T>,
+    value: Option<T>,
+}
+
+impl<T> PeekableReceiver<T> {
+    pub fn new(receiver: mio::channel::Receiver<T>) -> Self {
+        Self {
+            receiver,
+            value: None,
+        }
+    }
+
+    pub fn try_recv(&mut self) -> std::result::Result<T, TryRecvError> {
+        self.value
+            .take()
+            .map_or_else(|| self.receiver.try_recv(), Ok)
+    }
+
+    pub fn peek(&mut self) -> std::result::Result<&T, TryRecvError> {
+        if self.value.is_none() {
+            self.value.replace(self.receiver.try_recv()?);
+        }
+
+        Ok(self.value.as_ref().expect("checked that some"))
     }
 }
