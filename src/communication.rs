@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 use std::convert::Into;
 
-use mio;
 use mio::Token;
+use mio::{self, Evented, Poll, PollOpt, Ready};
 use mio_extras::timer::Timeout;
 use url;
 
@@ -13,6 +13,7 @@ use result::{Error, Result};
 use std::cmp::PartialEq;
 use std::fmt;
 use std::hash::{Hash, Hasher};
+use std::io::Result as IoResult;
 use std::sync::mpsc::TryRecvError;
 
 #[derive(Debug, Clone)]
@@ -30,7 +31,7 @@ pub enum Signal {
 #[derive(Debug, Clone)]
 pub struct Command {
     token: Token,
-    signal: Signal,
+    pub(super) signal: Signal,
     connection_id: u32,
 }
 
@@ -273,5 +274,25 @@ impl<T> PeekableReceiver<T> {
         }
 
         Ok(self.value.as_ref().expect("checked that some"))
+    }
+}
+
+impl<T> Evented for PeekableReceiver<T> {
+    fn register(&self, poll: &Poll, token: Token, interest: Ready, opts: PollOpt) -> IoResult<()> {
+        self.receiver.register(poll, token, interest, opts)
+    }
+
+    fn reregister(
+        &self,
+        poll: &Poll,
+        token: Token,
+        interest: Ready,
+        opts: PollOpt,
+    ) -> IoResult<()> {
+        self.receiver.reregister(poll, token, interest, opts)
+    }
+
+    fn deregister(&self, poll: &Poll) -> IoResult<()> {
+        self.receiver.deregister(poll)
     }
 }
