@@ -170,7 +170,7 @@ pub struct Settings {
     /// The maximum size to which the incoming buffer can grow. This is a hard limit, and anything
     /// written to the buffer over this limit will result in an error.
     /// Default: 10,485,760
-    pub in_buffer_capacity_hard_limit: usize,
+    pub max_in_buffer_capacity: usize,
     /// The maximum size to which the incoming buffer should grow. This is a soft limit, so it is
     /// possible for the buffer to grow over this limit, however once its capacity grows beyond
     /// this value it will be freed as soon as the buffer is emptied out, and reallocated with
@@ -184,7 +184,7 @@ pub struct Settings {
     /// The maximum size to which the outgoing buffer can grow. This is a hard limit, and anything
     /// written to the buffer over this limit will result in an error.
     /// Default: 10,485,760
-    pub out_buffer_capacity_hard_limit: usize,
+    pub max_out_buffer_capacity: usize,
     /// The maximum size to which the outgoing buffer should grow. This is a soft limit, so it is
     /// possible for the buffer to grow over this limit, however once its capacity grows beyond
     /// this value it will be freed as soon as the buffer is emptied out, and reallocated with
@@ -256,7 +256,7 @@ impl Default for Settings {
     fn default() -> Settings {
         Settings {
             max_connections: 100,
-            queue_size: 5,
+            queue_size: 500,
             panic_on_new_connection: false,
             panic_on_shutdown: false,
             fragments_capacity: 10,
@@ -264,10 +264,10 @@ impl Default for Settings {
             fragment_size: u16::max_value() as usize,
             max_fragment_size: usize::max_value(),
             in_buffer_capacity: 2048,
-            in_buffer_capacity_hard_limit: 10 * 1024 * 1024,
+            max_in_buffer_capacity: 10 * 1024 * 1024,
             in_buffer_capacity_soft_limit: 1024 * 1024,
             out_buffer_capacity: 2048,
-            out_buffer_capacity_hard_limit: 10 * 1024 * 1024,
+            max_out_buffer_capacity: 1024,
             out_buffer_capacity_soft_limit: 1024 * 1024,
             panic_on_internal: true,
             panic_on_capacity: false,

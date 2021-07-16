@@ -123,11 +123,11 @@ where
             fragments: VecDeque::with_capacity(settings.fragments_capacity),
             in_buffer: CircularBuffer::new(
                 settings.in_buffer_capacity,
-                settings.in_buffer_capacity_hard_limit,
+                settings.max_in_buffer_capacity,
             ),
             out_buffer: CircularBuffer::new(
                 settings.out_buffer_capacity,
-                settings.out_buffer_capacity_hard_limit,
+                settings.max_out_buffer_capacity,
             ),
             handler,
             addresses: Vec::new(),
