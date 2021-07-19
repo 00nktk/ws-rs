@@ -819,6 +819,7 @@ where
             {
                 if !conn.connection.check_message_fits(msg) {
                     if i == 0 {
+                        conn.is_clogged = true;
                         // We fail on the first item, so we need to wait and flush the buffer
                         // and then retry serializing messages
                         if let Err(err) = self.schedule(poll, &self.connections[token.into()]) {
